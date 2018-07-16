@@ -11,23 +11,33 @@ model = keras.applications.vgg16.VGG16(include_top=True, weights='imagenet')
 
 type(model)
 model.summary()
+
+# Freezing the pre-trained layers. 
 model.layers.pop()
 model.summary()
+
+# Initializing the new sequential model
 vgg = Sequential()
+
+# Adding model to the new model
 vgg.add(model)
 vgg.summary()
 
+# All the layers of the VGG16 model are turned non-trainable or freezed
+# Few Conv layers can be unfrozen so as to better fine tune the model
 for layer in vgg.layers:
     layer.trainable = False
 
-#incpn.add(Flatten())
+#VGG16 FC layers addition
 vgg.add(Dense(4096, activation = 'relu'))
 vgg.add(Dense(2, input_shape=(1, ), activation = 'softmax'))
 
 vgg.summary()
 
-vgg.compile(Adam(lr = .0001), loss = 'categorical_crossentropy', metrics = ['accuracy'] )
+# Compiling the model
+vgg.compile(Adam(lr = .0001), loss = 'binary_crossentropy', metrics = ['accuracy'] )
 
+# Image pre - processing 
 train_datagen = ImageDataGenerator(rescale = 1./255,
                                    shear_range = 0.2,
                                    zoom_range = 0.2,
@@ -45,9 +55,12 @@ test_set = test_datagen.flow_from_directory('/home/apocobis/Downloads/Dataset/ca
                                             batch_size = 32,
                                             classes = ['dogs', 'cats'])
 
+# Running the model
 vgg.fit_generator(training_set, steps_per_epoch = 8000, epochs = 10, validation_data = test_set, validation_steps = 2000)
 
+# The model's validation accuracy is between ~90 - 100% 
 
+# Now we prepare the CNN classifier
 # Initialising the CNN
 classifier = Sequential()
 
@@ -71,8 +84,7 @@ classifier.add(Dense(units = 1, activation = 'sigmoid'))
 # Compiling the CNN
 classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
 
-
-
+# Image pre - processing 
 train_datagen = ImageDataGenerator(rescale = 1./255,
                                    shear_range = 0.2,
                                    zoom_range = 0.2,
@@ -90,9 +102,10 @@ test_set = test_datagen.flow_from_directory('/home/apocobis/Downloads/Dataset/ca
                                             batch_size = 32,
                                             class_mode = 'binary')
 
+# Running the model
 classifier.fit_generator(training_set, steps_per_epoch = 8000, epochs = 10, validation_data = test_set, validation_steps = 2000)
 
-
+# The model's validation accuracy is ~80% 
 
 
 
